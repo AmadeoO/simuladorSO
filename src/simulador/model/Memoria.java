@@ -6,10 +6,13 @@
 package simulador.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import simulador.model.Particion;
 import simulador.model.Proceso;
 import simulador.model.ColaListo;
+import simulador.model.ColaNuevo;
 
 /**
  *
@@ -17,8 +20,8 @@ import simulador.model.ColaListo;
  */
 public class Memoria {
 
-    private List<Proceso> listProceso;
-    private List<Particion> listParticion;
+    private final List<Proceso> listProceso;
+    private final List<Particion> listParticion;
     private Integer tamMemoria;
     private Boolean tipoParticion;
     private final int tamMaximo = 1000;
@@ -26,6 +29,7 @@ public class Memoria {
     private final int tamanoSo;
 
     public Memoria(Integer tamaño) {
+
         if (tamaño > this.tamMaximo) {
             this.tamMemoria = this.tamMaximo;
         }
@@ -38,8 +42,8 @@ public class Memoria {
 
         this.tamanoSo = (int) (this.tamMemoria * 0.10);
 
-        this.listParticion = new ArrayList<Particion>();
-        this.listProceso = new ArrayList<Proceso>();
+        this.listParticion = new ArrayList<>();
+        this.listProceso = new ArrayList<>();
     }
 
     //---------------------REALIZAR CONTROLES PARA LA CARGA PARTICIONES----------------//
@@ -74,12 +78,24 @@ public class Memoria {
         }
     }
 
+    public void addProceso(Proceso proceso) {
+        this.listProceso.add(proceso);
+    }
+
+    public List<Proceso> getListProceso() {
+        return this.listProceso;
+    }
+
     public void addParticion(Particion particion) {
         if (particion.getTamParticion() > calcularMemoriaLibre() && calcularMemoriaLibre() != 0) {
             particion.setTamParticion(calcularMemoriaLibre());
         }
 
         this.listParticion.add(particion);
+    }
+
+    public List<Particion> getListParticion() {
+        return this.listParticion;
     }
 
     private int calcularMemoriaLibre() {
@@ -94,55 +110,68 @@ public class Memoria {
         return cantidadMemoriaLibre;
     }
 
-    public void runFirstFit(ColaListo colaListo) {
-        //la lista debe estar ordenada
-        int indiceColaListo = 0;
-        int clock = 0;
-        int instance = 0;
+    public void ordenarListaParticiones() {
+        Collections.sort(listParticion);
+    }
 
-        while (!colaListo.isEmpty()) {
-            if (indiceColaListo > colaListo.getListProceso().size() - 1) {
-                indiceColaListo = 0;
-            }
-            System.out.println("GENERAL CLOCK = " + clock);
-            this.listParticion.forEach((particion) -> {
-                if (particion.procesoIsNull()) {
-                    System.out.println(particion.getTamParticion() + " = [ ]");
-                } else {
-                    System.out.println(particion.getTamParticion() + " = " + particion.getProceso().getNombreProceso());
-                }
-            });
+    public void runBestFit(List<Proceso> colaNuevo) {
+
+        ordenarListaParticiones();
+        int clock = 0;
+        Iterator<Proceso> itProceso = colaNuevo.iterator();
+        while(!colaNuevo.isEmpty()){
+        while (itProceso.hasNext()) {
+            imprimirProcesoPorConsola(clock);
+            Proceso proceso = itProceso.next();
+            int tamEfectivoLibre = 99999;
+            int resguardoIndexParticion = 0;
+            Boolean particionValida = false;
 
             for (Particion particion : this.listParticion) {
-                final boolean procesoEnColaListo = colaListo.getProceso(indiceColaListo).getEstadoProceso().equalsIgnoreCase("listo");
-                if (procesoEnColaListo) {
-                    final Integer tamProceso = colaListo.getProceso(indiceColaListo).getTamProceso();
-                    final Integer tamParticion = particion.getTamParticion();
-                    final boolean paticionLibre = particion.getEstado().equalsIgnoreCase("libre");
-
-                    if (paticionLibre) {
-                        if (tamProceso <= tamParticion) {
-                            colaListo.getProceso(indiceColaListo).setEstadoProceso("corriendo");
-                            particion.setEstado("ocupado");
-                            particion.addProceso(colaListo.getProceso(indiceColaListo));
-                            
-
-                        }
+                if (particion.getEstado()) {
+                    final int calculoTamParticion = particion.getTamParticion() - proceso.getTamProceso();
+                    if (calculoTamParticion >= 0 && calculoTamParticion <= tamEfectivoLibre) {
+                        tamEfectivoLibre = calculoTamParticion;
+                        resguardoIndexParticion = this.listParticion.indexOf(particion);
+                        particionValida = true;
                     }
                 }
             }
-            //Actualiza el tiempo de Arribo descontando en 1
-            if (clock >= 2) {
-                this.listParticion.forEach((particion) -> {
-                    particion.getProceso().upgradeTiempoArribo();
-                });
 
+            if (particionValida) {
+                this.listParticion.get(resguardoIndexParticion).addProceso(proceso);
+                itProceso.remove();
+//                break;
             }
 
             clock += 1;
-            indiceColaListo += 1;
-        }
+            liberarMemoria(clock);
 
+        }
+        }
+        imprimirProcesoPorConsola(clock);
     }
 
+    public void liberarMemoria(int clock) {
+        for (Particion particion : this.listParticion) {
+            if (particion.getEstado().equals(false)) {
+                if (particion.getProceso().getTamProceso() == clock) {
+                    particion.setEstado(true);
+                }
+            }
+        }
+    }
+
+    private void imprimirProcesoPorConsola(int clock) {
+
+        System.out.println("GENERAL CLOCK = " + clock);
+        this.listParticion.forEach((particion) -> {
+            if (particion.procesoIsNull()) {
+                System.out.println(particion.getTamParticion() + " = [ ]");
+            } else {
+                System.out.println(particion.getTamParticion() + " = " + particion.getProceso().getNombreProceso());
+            }
+        });
+
+    }
 }

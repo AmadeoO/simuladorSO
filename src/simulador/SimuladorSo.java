@@ -5,7 +5,14 @@
  */
 package simulador;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import simulador.model.ColaListo;
+import simulador.model.ColaNuevo;
 import simulador.model.Memoria;
 import simulador.model.Particion;
 import simulador.model.Proceso;
@@ -23,7 +30,7 @@ public class SimuladorSo {
     private static Particion part2;
     private static Particion part3;
     private static Particion part4;
-    private static ColaListo colaListo;
+    private static ColaNuevo colaNuevo;
     private static Memoria memoria;
 
     private static void initialProcesses() {
@@ -40,11 +47,17 @@ public class SimuladorSo {
         part4 = new Particion(4);
     }
 
-    private static void setUpColaListo() {
-        colaListo = new ColaListo();
-        colaListo.addProceso(pro1);
-        colaListo.addProceso(pro2);
-        colaListo.addProceso(pro3);
+//    private static void setUpColaNuevo() {
+//        colaNuevo = new ColaNuevo();
+//        colaNuevo.addProceso(pro1);
+//        colaNuevo.addProceso(pro2);
+//        colaNuevo.addProceso(pro3);
+//    }
+    
+    private static void addProcessInMemory(){
+        memoria.addProceso(pro1);
+        memoria.addProceso(pro2);
+        memoria.addProceso(pro3);
     }
 
     private static void setUpMemoria() {
@@ -58,13 +71,18 @@ public class SimuladorSo {
     private static void executeMethodInOrder() {
         initialProcesses();
         initialPartition();
-        setUpColaListo();
         setUpMemoria();
+        addProcessInMemory();
+        
+        
     }
 
     public static void main(String[] args) {
         executeMethodInOrder();
-        memoria.runFirstFit(colaListo);
+        memoria.runBestFit(memoria.getListProceso());
+        
+        
+        
 
     }
 }

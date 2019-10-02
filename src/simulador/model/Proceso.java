@@ -90,4 +90,8 @@ public class Proceso {
         return this.tamProceso;
     }
 
+    Proceso getProceso() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

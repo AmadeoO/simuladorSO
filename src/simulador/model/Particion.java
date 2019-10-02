@@ -9,27 +9,27 @@ package simulador.model;
  *
  * @author Amadeo
  */
-public class Particion {
+public class Particion implements Comparable<Particion> {
 
     //VER LIBRERÍA PARA LOS Id dinamicos
     private Integer idParticion;
     private Integer tamParticion;
     private Integer direccionInicial;
-    private String estado;
+    private Boolean estado;
     private Proceso proceso;
     //FALTA el metodo de la fragmentación interna;
     private Integer fragmentacionInterna;
 
 //-----------constructores
     public Particion(Integer tamParticion, Integer direccionInicial) {
-        this.estado = "libre";
+        this.estado = true;
         this.tamParticion = tamParticion;
         this.direccionInicial = direccionInicial;
     }
 
     public Particion(Integer tamParticion) {
         this.tamParticion = tamParticion;
-        this.estado = "libre";
+        this.estado = true;
         this.proceso=null;
     }
 
@@ -47,8 +47,20 @@ public class Particion {
             return false;
         }else{return true;}
     }
-    public void addProceso(Proceso p) {
-        this.proceso = p;
+    @Override
+    public int compareTo(Particion particion) {
+       
+        if (tamParticion < particion.tamParticion) {
+            return -1;
+        }
+        if (tamParticion > particion.tamParticion) {
+            return 1;
+        }
+        return 0;
+    }   
+    public void addProceso(Proceso proceso) {
+        this.proceso = proceso;
+        this.estado = true;
     }
 
     public void removeProceso() {
@@ -75,11 +87,11 @@ public class Particion {
         this.tamParticion = tamParticion;
     }
 
-    public String getEstado() {
+    public Boolean getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(Boolean estado) {
         this.estado = estado;
     }
 
